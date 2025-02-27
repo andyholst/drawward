@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  extract_xml:
+    image: python:3.9-slim
+    volumes:
+    - ./:/app
+    working_dir: /app
+    command: python script/extract_svg_to_xml.py
+  generate_backstage:
+    image: python:3.9-slim
+    volumes:
+    - ./:/app
+    working_dir: /app
+    command: python script/generate_backstage_from_xml.py
