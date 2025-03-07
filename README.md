@@ -1,18 +1,21 @@
 # DrawWard
 
-WIP: To be used to use C4 model diagrams to prototype code based on the architecture and provide an overview easily with Backstage.
+**WIP**: This project streamlines software architecture design by using C4 model diagrams in Draw.io to prototype systems, generate Backstage catalog files, and integrate them into Backstage. It enables rapid code generation and unified documentation, bridging architecture and development seamlessly. Updated the xml converter after validation integration with Backstage.
 
-This is a markdown code block describing a workflow to design software systems using C4 diagrams in Draw.io, convert them into Backstage catalog files, and generate template code for services and microservices. Below is a detailed explanation of the process.
+## Intentions
 
-## Overview
+The core goals of this project are:
 
-The workflow leverages the **C4 model** to create architectural diagrams at different levels (system, container, component) using **Draw.io**. These diagrams are exported as SVG files, processed to extract XML data, and then converted into **Backstage catalog files** (e.g., `catalog-info.yaml`). Finally, **Backstage’s scaffolding feature** generates template code based on the catalog entities, enabling rapid prototyping and consistent architectural documentation.
+- **Design with C4 Diagrams**: Create architecture diagrams (system, container, component) in Draw.io to define your software landscape.
+- **Generate Backstage Catalog Files**: Convert C4 diagrams into `catalog-info.yaml` files to catalog services, systems, and components in Backstage.
+- **Integrate with Backstage**: Import catalog files into Backstage from the repository, providing an up-to-date architectural overview.
+- **Generate Template Code**: Use Backstage’s scaffolding feature to produce boilerplate code based on catalog entities, optionally storing it in the same repository.
+- **Unified Documentation**: Import TechDocs from the repository into Backstage, linking architecture with technical documentation.
+- **Rapid Prototyping & Consistency**: Speed up development with generated code and maintain a consistent view of your architecture in Backstage.
 
-### Key Benefits
+### Future Vision
 
-- **Rapid Prototyping**: Quickly turn diagrams into service code.
-- **Architectural Consistency**: Maintain an overview in Backstage.
-- **Streamlined Development**: Generate boilerplate code to speed up onboarding and coding.
+Looking ahead, we aim to dynamically update C4 diagrams from code using Structurizr. This would involve generating DSL from the codebase and creating live diagrams (not limited to SVG) at different levels (system, container, component), reflecting the current state of the system. This is a future enhancement and not part of the current scope.
 
 ## Prerequisites
 
@@ -22,87 +25,62 @@ The workflow leverages the **C4 model** to create architectural diagrams at diff
   - A running Backstage instance.
 - **Knowledge**:
   - Basics of the C4 model (system, container, component diagrams).
-  - Understanding of Backstage’s catalog structure and scaffolding feature.
+  - Understanding of Backstage’s catalog and scaffolding features.
   - Familiarity with software architecture concepts.
 
-## Step-by-Step Process
+## Workflow Overview
 
-### Step 1: Create C4 Diagrams in Draw.io
+1. **Create C4 Diagrams**:
+   - Design your architecture in Draw.io using C4 diagrams.
+   - Export as SVG files with embedded XML metadata to `docs/design/drawio/`.
 
-1. Open **Draw.io** and enable the C4 shape library:
-   - Go to `Extras` > `Edit Diagram` > Add C4 shapes.
-2. Design your architecture:
-   - **System Diagram**: High-level view of systems and their relationships.
-   - **Container Diagram**: Services or applications within a system.
-   - **Component Diagram**: Internal components of a container.
-3. Export each diagram as an SVG:
-   - Go to `File` > `Export As` > `SVG`.
-   - Use default settings to include embedded XML metadata.
-4. Save the SVG files in a directory, e.g., `docs/design/drawio/`.
-
-### Step 2: Convert SVG to XML
-
-This step uses a **Makefile** and a **Docker-based converter** to extract XML data from SVG files.
-
-#### Prerequisites
-
-- Docker installed and running.
-- SVG files saved in `docs/design/drawio/`.
-
-#### Commands
-
-1. **Build the Docker Image**:
-   - Command: `make build-drawio-image`
-   - Builds a Docker image named `drawio-converter` using a Dockerfile.
 2. **Convert SVG to XML**:
-   - Command: `make convert-drawio-svg-to-xml`
-   - Extracts XML from SVG files and saves them in `docs/design/xml/`.
-3. **Run Both Steps Together**:
-   - Command: `make`
-   - Combines the build and conversion steps.
-4. **Verify Output**:
-   - Check the `docs/design/xml/` directory for generated XML files.
+   - Use a Docker-based converter to extract XML from SVG files, saved to `docs/design/xml/`.
 
-### Step 3: Generate Backstage Catalog Files
+3. **Generate Catalog Files**:
+   - Convert XML to Backstage catalog files (`catalog-info.yaml`) using a custom script.
+   - Store files in `catalog/` with subdirectories (`system/`, `container/`, `component/`).
 
-Convert the XML files into Backstage catalog files (`catalog-info.yaml`).
+4. **Import into Backstage**:
+   - Backstage imports and validates catalog files from the repository automatically.
+   - View your systems, services, and components in the Backstage UI.
+   - **Updating Catalog Files**: While generation from diagrams is preferred, you can manually edit catalog files if needed. To maintain consistency, update diagrams and regenerate files.
 
-#### Prerequisites
+5. **Generate Template Code**:
+   - Use Backstage’s scaffolding feature to create boilerplate code from catalog entities.
+   - Optionally configure to store code in the same repository.
 
-- XML files in `docs/design/xml/`.
-- A script (e.g., in Python or Node.js) to parse XML and generate YAML.
+6. **Import TechDocs**:
+   - Import technical documentation from the repository into Backstage for a unified view.
 
-#### Steps
+## Repository Structure
 
-1. **Parse XML**:
-   - Use a custom script to extract C4 elements (systems, containers, components).
-2. **Map to Backstage Entities**:
-   - **C4 System** → `kind: System`
-   - **C4 Container** → `kind: Component` (for services)
-   - **C4 Component** → `kind: Component` (e.g., `type: library`) or `kind: Resource` (e.g., `type: database`)
-3. **Save YAML Files**:
-   - Store the generated `catalog-info.yaml` files in a directory, e.g., `catalog/`.
+- `catalog/`: Generated Backstage catalog files (`catalog-info.yaml`) in subdirectories (`system/`, `container/`, `component/`).
+- `docs/design/drawio/`: C4 diagrams in SVG format.
+- `docs/design/xml/`: Temporary XML files from SVG conversion.
+- `.github/workflows/`: Automation workflows for conversion and validation.
 
-#### Repository Integration
+## Usage
 
-The generated diagrams and Backstage catalog files can be stored in a repository (e.g., GitHub, GitLab) for version control and team collaboration. Backstage supports importing these files directly from a repository to keep the catalog current. Additionally, template code can be generated into the same repository, ensuring all artifacts—diagrams, catalog files, and code—remain connected in a unified environment.
+### Makefile Commands
 
-### Step 4: Import into Backstage
+Manage the workflow with these commands:
 
-1. Move the `catalog-info.yaml` files to your Backstage instance’s catalog directory (e.g., `/catalog-info`), or rely on repository integration for automatic imports.
-2. Start Backstage locally or deploy it.
-3. Verify the catalog in the Backstage UI to see your systems, services, and components.
+- **`make build-drawio-image`**: Builds the Docker image for SVG-to-XML conversion.
+- **`make convert-drawio-svg-to-xml`**: Converts SVG files to XML.
+- **`make convert-xml-to-backstage-files`**: Converts XML to Backstage catalog files.
+- **`make clean`**: Removes generated XML and catalog files.
+- **`make all`**: Runs the full workflow (build, SVG-to-XML, XML-to-catalog).
 
-### Step 5: Generate Code Templates
+### Backstage Integration Details
 
-1. Define scaffolding templates in Backstage for code generation.
-2. Use the Backstage UI to select a template and generate code.
-3. The output is a new repository or local folder with boilerplate code, optionally integrated into the same repository as your diagrams and catalog files.
+- **Catalog Validation**: Backstage validates `catalog-info.yaml` files during import. If validation fails, entities are not added, and errors are logged in the Backstage UI.
+- **Repository-Based Import**: Store catalog files and TechDocs in this repository, and configure Backstage to import them automatically.
 
 ## Future Improvements
 
-- Add Makefile targets like `generate-catalog` or `clean`.
-- Replace the Docker-based converter with a script if SVG formats change.
-- Enhance the XML-to-YAML script to support additional C4 elements or metadata.
+- **Dynamic Diagrams**: Integrate Structurizr to generate DSL from code and update diagrams dynamically.
+- **Enhanced Automation**: Add Makefile targets or GitHub Actions for specific tasks.
+- **Script Refinement**: Improve the XML-to-YAML conversion to support more C4 metadata.
 
-This workflow streamlines the process from architecture design to code generation, integrating C4 diagrams with Backstage effectively while supporting repository-based collaboration.
+This project connects C4-based architecture design with Backstage, enabling rapid prototyping, consistent documentation, and streamlined development through code generation and TechDocs integration.

@@ -1,0 +1,8 @@
+- apiVersion: backstage.io/v1alpha1
+  kind: System
+  metadata:
+    description: ''
+    name: auth-server
+    namespace: default
+  spec:
+    owner: team-a

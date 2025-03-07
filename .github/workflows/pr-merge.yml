@@ -1,10 +1,11 @@
-name: Convert and Validate SVG to XML
+name: Convert and Validate SVG to XML and YAML
 
 on:
   pull_request:
     branches:
       - main
     types:
+      - opened
       - closed
 
 jobs:
@@ -14,14 +15,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Clean Workspace
+        run: |
+          make clean
+
       - name: Convert SVG to XML
         run: |
           make convert-drawio-svg-to-xml
 
-      - name: Validate XML Files
+      - name: Convert XML to Backstage YAML
+        run: |
+          make convert-xml-to-backstage-files
+
+      - name: Validate XML and YAML Files
         run: |
           SVG_DIR="docs/design/drawio"
           XML_DIR="docs/design/xml"
+          CATALOG_DIR="catalog"
 
           if [ -z "$(ls -A "$SVG_DIR"/*.svg 2>/dev/null)" ]; then
             echo "No SVG files found in $SVG_DIR"
@@ -40,5 +50,15 @@ jobs:
               exit 1
             fi
           done
-          rm -fr $XML_DIR
-          echo "Validation successful: All XML files are present and non-empty"
+          # Validate catalog files exist
+          for dir in "$CATALOG_DIR"/system "$CATALOG_DIR"/container "$CATALOG_DIR"/component; do
+            if [ ! -f "$dir/catalog-info.yaml" ]; then
+              echo "Error: catalog-info.yaml not found in $dir"
+              exit 1
+            fi
+            if [ ! -s "$dir/catalog-info.yaml" ]; then
+              echo "Error: catalog-info.yaml in $dir is empty"
+              exit 1
+            fi
+          done
+          echo "Validation successful: All XML and YAML files are present and non-empty"
