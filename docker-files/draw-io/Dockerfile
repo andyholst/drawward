@@ -25,7 +25,7 @@ RUN echo "Installing dependencies..." \
 RUN echo "Downloading draw.io .deb package..." \
     && wget https://github.com/jgraph/drawio-desktop/releases/download/v26.0.16/drawio-amd64-26.0.16.deb -O /tmp/drawio.deb \
     && echo "Installing draw.io.deb package..." \
-    && dpkg -i /tmp/drawio.deb \
+    && dpkg -i /tmp/drawio.deb || apt-get install -f -y \
     && echo "Listing installed files from the .deb package (may fail if not registered):" \
     && dpkg -L drawio || true \
     && echo "Checking drawio binary location:" \
@@ -40,4 +40,4 @@ RUN echo "Setting up convert_svg_to_xml.sh..." \
 
 WORKDIR /app
 
-ENTRYPOINT ["convert_svg_to_xml.sh"]
+ENTRYPOINT ["/usr/local/bin/convert_svg_to_xml.sh"]

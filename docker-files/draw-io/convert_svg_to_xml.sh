@@ -1,23 +1,15 @@
 #!/bin/bash
 
-# Ensure /var/run/dbus/ exists at runtime
-echo "Setting up DBus directory..."
-mkdir -p /var/run/dbus
-chmod 755 /var/run/dbus
-
-# Start DBus daemon in the background
-echo "Starting DBus daemon..."
-dbus-daemon --system --fork 2>/tmp/dbus_error.log
-sleep 1  # Give it a moment to start
-
 SVG_DIR="/input"
 XML_DIR="/output"
 
+# Check if input and output directories are mounted
 if [ ! -d "$SVG_DIR" ] || [ ! -d "$XML_DIR" ]; then
     echo "Error: Please mount input and output directories."
     exit 1
 fi
 
+# Handle cases with no SVG files
 shopt -s nullglob
 SVG_FILES=("$SVG_DIR"/*.svg)
 if [ ${#SVG_FILES[@]} -eq 0 ]; then
@@ -25,35 +17,49 @@ if [ ${#SVG_FILES[@]} -eq 0 ]; then
     exit 0
 fi
 
+# Bypass DBus to avoid connection issues
+export DBUS_SESSION_BUS_ADDRESS=/dev/null
+
 echo "Starting Xvfb..."
 Xvfb :99 -screen 0 1024x768x16 &
-XVFB_PID=$!
-sleep 1
 export DISPLAY=:99
 
+# Process each SVG file
 for SVG_FILE in "${SVG_FILES[@]}"; do
     XML_FILE="$XML_DIR/$(basename "$SVG_FILE" .svg).xml"
     
+    # Verify input file exists (redundant due to glob, but good practice)
     if [ ! -f "$SVG_FILE" ]; then
         echo "Error: Input file $SVG_FILE does not exist"
-        kill $XVFB_PID
         exit 1
     fi
     
     echo "Converting $SVG_FILE to $XML_FILE..."
-    /usr/bin/drawio --no-sandbox --disable-gpu --export --format xml --output "$XML_FILE" "$SVG_FILE" 2>/tmp/drawio_error.log
-    if [ $? -ne 0 ]; then
-        echo "Failed to convert $SVG_FILE"
-        cat /tmp/drawio_error.log
-        kill $XVFB_PID
+    
+    drawio --no-sandbox --export --format xml --output "$XML_FILE" "$SVG_FILE" > /tmp/drawio.log 2>&1
+    EXIT_STATUS=$?
+    
+    # Check if drawio command was successful
+    if [ $EXIT_STATUS -ne 0 ]; then
+        echo "Error: drawio failed with exit status $EXIT_STATUS"
+        echo "drawio output:"
+        cat /tmp/drawio.log
         exit 1
-    else
-        echo "Successfully converted $SVG_FILE to $XML_FILE"
     fi
+    
+    # Check if XML file was created
+    if [ ! -f "$XML_FILE" ]; then
+        echo "Error: XML file $XML_FILE was not created"
+        exit 1
+    fi
+    
+    # Check if XML file is not empty
+    if [ ! -s "$XML_FILE" ]; then
+        echo "Error: XML file $XML_FILE is empty"
+        exit 1
+    fi
+    
+    echo "Successfully converted $SVG_FILE to $XML_FILE"
 done
-
-echo "Stopping Xvfb..."
-kill $XVFB_PID
-rm -f /tmp/drawio_error.log /tmp/dbus_error.log
 
 exit 0

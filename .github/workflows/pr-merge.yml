@@ -1,0 +1,44 @@
+name: Convert and Validate SVG to XML
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  convert-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Convert SVG to XML
+        run: |
+          make convert-drawio-svg-to-xml
+
+      - name: Validate XML Files
+        run: |
+          SVG_DIR="docs/design/drawio"
+          XML_DIR="docs/design/xml"
+
+          if [ -z "$(ls -A "$SVG_DIR"/*.svg 2>/dev/null)" ]; then
+            echo "No SVG files found in $SVG_DIR"
+            exit 1
+          fi
+          # Validate each SVG has a corresponding XML
+          for svg_file in "$SVG_DIR"/*.svg; do
+            base_name=$(basename "$svg_file" .svg)
+            xml_file="$XML_DIR/$base_name.xml"
+            if [ ! -f "$xml_file" ]; then
+              echo "Error: XML file $xml_file does not exist for $svg_file"
+              exit 1
+            fi
+            if [ ! -s "$xml_file" ]; then
+              echo "Error: XML file $xml_file is empty"
+              exit 1
+            fi
+          done
+          rm -fr $XML_DIR
+          echo "Validation successful: All XML files are present and non-empty"
