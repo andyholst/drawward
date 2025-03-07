@@ -10,13 +10,14 @@ XML_DIR := docs/design/xml
 all: convert-drawio-svg-to-xml
 
 build-drawio-image:
-		docker build --no-cache -t $(DOCKER_IMAGE) $(DOCKER_BUILD_DIR) || { echo "Failed to build Docker image"; exit 1; }
+		docker build -t $(DOCKER_IMAGE) $(DOCKER_BUILD_DIR) || { echo "Failed to build Docker image"; exit 1; }
 		@echo "Docker image $(DOCKER_IMAGE) built successfully"
 
 convert-drawio-svg-to-xml: build-drawio-image
 		mkdir -p $(XML_DIR)
 		@echo "Running: docker run --rm -v \"$(PWD)/$(SVG_DIR)\":/input -v \"$(PWD)/$(XML_DIR)\":/output $(DOCKER_IMAGE)"
 		docker run --rm \
+				-u $(id -u):$(id -g) \
 				-v "$(PWD)/$(SVG_DIR)":/input \
 				-v "$(PWD)/$(XML_DIR)":/output \
 				$(DOCKER_IMAGE) || { echo "Failed to convert SVG files to XML"; exit 1; }
