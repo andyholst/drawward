@@ -1,6 +1,6 @@
 # DrawWard
 
-**WIP**: This project streamlines software architecture design by using C4 model diagrams in Draw.io to prototype systems, generate Backstage catalog files, and integrate them into Backstage. It enables rapid code generation and unified documentation, bridging architecture and development seamlessly. Updated the xml converter after validation integration with Backstage.
+**WIP**: This project streamlines software architecture design by using C4 model diagrams in Draw.io to prototype systems, generate Backstage catalog files, and integrate them into Backstage. It enables rapid code generation and unified documentation, bridging architecture and development seamlessly. Enhanced the XML to Backstage catalog conversion script to improve integration and validation with Backstage.
 
 ## Intentions
 

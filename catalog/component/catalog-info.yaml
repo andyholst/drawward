@@ -1,22 +1,35 @@
-- apiVersion: backstage.io/v1alpha1
-  kind: Component
-  metadata:
-    description: Security Bean, to setup the oauth2 server and expose the oauth2 endpoints
-    name: component-name
-    namespace: default
-  spec:
-    lifecycle: production
-    owner: team-a
-    technology: Spring Service
-    type: library
-- apiVersion: backstage.io/v1alpha1
-  kind: Component
-  metadata:
-    description: Repository for Postgres call
-    name: postgres-repository
-    namespace: default
-  spec:
-    lifecycle: production
-    owner: team-a
-    technology: Spring Service
-    type: library
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  description: Contains users and clients to authenticate person and machines
+  name: database-users-clients
+  namespace: default
+spec:
+  owner: team-a
+  technology: PostgreSQL
+  type: database
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  description: Security Bean, to setup the oauth2 server and expose the oauth2 endpoints
+  name: spring-security-bean
+  namespace: default
+spec:
+  lifecycle: production
+  owner: team-a
+  technology: Spring Service
+  type: library
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  description: Repository for Postgres call
+  name: postgres-repository
+  namespace: default
+spec:
+  lifecycle: production
+  owner: team-a
+  technology: Spring Service
+  type: library
