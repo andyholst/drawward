@@ -1,8 +1,18 @@
-- apiVersion: backstage.io/v1alpha1
-  kind: System
-  metadata:
-    description: ''
-    name: auth-server
-    namespace: default
-  spec:
-    owner: team-a
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  description: Description of external software system.
+  name: external-web-client
+  namespace: default
+spec:
+  owner: team-a
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  description: Authorizes person and systems through Oauth2 and gives back a token
+  name: authorization-service
+  namespace: default
+spec:
+  owner: team-a

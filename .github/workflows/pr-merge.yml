@@ -15,6 +15,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Backup catalog-info.yaml from current branch
+        run: |
+          mkdir -p backup_catalog/system backup_catalog/container backup_catalog/component
+          cp catalog/system/catalog-info.yaml backup_catalog/system/catalog-info.yaml
+          cp catalog/container/catalog-info.yaml backup_catalog/container/catalog-info.yaml
+          cp catalog/component/catalog-info.yaml backup_catalog/component/catalog-info.yaml
+
       - name: Clean Workspace
         run: |
           make clean
@@ -26,6 +33,24 @@ jobs:
       - name: Convert XML to Backstage YAML
         run: |
           make convert-xml-to-backstage-files
+
+      - name: Compare generated Backstage files with committed Backstage files
+        run: |
+          for dir in system container component; do
+            if [ -f "backup_catalog/$dir/catalog-info.yaml" ]; then
+              diff "backup_catalog/$dir/catalog-info.yaml" "catalog/$dir/catalog-info.yaml"
+              if [ $? -ne 0 ]; then
+                echo "Error: Generated catalog-info.yaml in $dir does not match the one in main"
+                exit 1
+              fi
+            else
+              echo "No catalog-info.yaml in main for $dir, skipping comparison"
+            fi
+          done
+
+      - name: Lint Backstage YAML Files
+        run: |
+          make lint-backstage-files
 
       - name: Validate XML and YAML Files
         run: |
