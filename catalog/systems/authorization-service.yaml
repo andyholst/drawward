@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Authorizes person and systems through Oauth2 and gives back a token
+  name: authorization-service
+  tags: []
+spec:
+  lifecycle: experimental
+  owner: dev-team
+  type: system

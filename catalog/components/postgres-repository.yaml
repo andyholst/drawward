@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Repository for Postgres call
+  name: postgres-repository
+  tags:
+  - spring service
+spec:
+  dependsOn:
+  - resource:users-clients
+  lifecycle: experimental
+  owner: dev-team
+  system: authorization-server
+  technology: Spring Service
+  type: library

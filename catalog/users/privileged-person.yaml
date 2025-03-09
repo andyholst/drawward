@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Privileged person that wants to authorize themselves.
+  name: privileged-person
+  tags: []
+spec:
+  dependsOn:
+  - system:authorization-service
+  lifecycle: experimental
+  owner: dev-team
+  type: user
