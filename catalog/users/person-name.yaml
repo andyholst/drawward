@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Description of person.
+  name: person-name
+  tags: []
+spec:
+  consumesApis:
+  - api:api-person-authorize-themselves-through-authorize-endpoint
+  lifecycle: experimental
+  owner: dev-team
+  type: user

@@ -1,0 +1,20 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Security Bean, to setup the oauth2 server and expose the oauth2 endpoints
+  name: spring-security-bean
+  tags:
+  - spring service
+spec:
+  dependsOn:
+  - component:postgres-repository
+  lifecycle: experimental
+  owner: dev-team
+  providesApis:
+  - api:api-person-authorize-themselves-through-authorize-endpoint
+  - api:api-machine-authorize-themselves-through-the-token-endpoint
+  system: authorization-server
+  technology: Spring Service
+  type: library
