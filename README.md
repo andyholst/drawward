@@ -69,6 +69,7 @@ Manage the workflow with these commands:
 - **`make build-drawio-image`**: Builds the Docker image for SVG-to-XML conversion.
 - **`make convert-drawio-svg-to-xml`**: Converts SVG files to XML.
 - **`make convert-xml-to-backstage-files`**: Converts XML to Backstage catalog files.
+- **`make lint-backstage-files`**: Lint all of the generated Backstage catalog files.
 - **`make clean`**: Removes generated XML and catalog files.
 - **`make all`**: Runs the full workflow (build, SVG-to-XML, XML-to-catalog).
 
