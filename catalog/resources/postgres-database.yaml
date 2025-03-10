@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Contains users and clients to authenticate person and machines
+  name: postgres-database
+  tags:
+  - postgresql
+spec:
+  lifecycle: experimental
+  owner: dev-team
+  system: authorization-server
+  technology: postgresql
+  type: database

@@ -8,15 +8,28 @@ BACKSTAGE_CONVERTER_BUILD_DIR := docker-files/backstage-converter
 BACKSTAGE_CATALOG_DIR := catalog
 BACKSTAGE_LINT_IMAGE := backstage-lint
 BACKSTAGE_LINT_BUILD_DIR := docker-files/backstage-entity-validator
+BACKUP_CATALOG_DIR := backup_catalog
 
 REPO_SLUG ?= myorg/myrepo
 TEAM_NAME ?= dev-team
 OWNER ?= $(TEAM_NAME)
 LIFECYCLE ?= experimental
 
-.PHONY: all build-drawio-converter-image convert-drawio-svg-to-xml build-backstage-converter-image convert-xml-to-backstage-files build-backstage-lint-image lint-backstage-files clean
+.PHONY: all build-drawio-converter-image convert-drawio-svg-to-xml build-backstage-converter-image convert-xml-to-backstage-files build-backstage-lint-image lint-backstage-files clean backup-catalogs validate-catalogs
 
 all: convert-drawio-svg-to-xml convert-xml-to-backstage-files lint-backstage-files
+
+backup-catalogs:
+		mkdir -p $(BACKUP_CATALOG_DIR)/apis $(BACKUP_CATALOG_DIR)/components $(BACKUP_CATALOG_DIR)/resources $(BACKUP_CATALOG_DIR)/systems $(BACKUP_CATALOG_DIR)/users
+		cp -r $(BACKSTAGE_CATALOG_DIR)/apis/*.yaml $(BACKUP_CATALOG_DIR)/apis/ 2>/dev/null || echo "No API files to backup"
+		cp -r $(BACKSTAGE_CATALOG_DIR)/components/*.yaml $(BACKUP_CATALOG_DIR)/components/ 2>/dev/null || echo "No component files to backup"
+		cp -r $(BACKSTAGE_CATALOG_DIR)/resources/*.yaml $(BACKUP_CATALOG_DIR)/resources/ 2>/dev/null || echo "No resource files to backup"
+		cp -r $(BACKSTAGE_CATALOG_DIR)/systems/*.yaml $(BACKUP_CATALOG_DIR)/systems/ 2>/dev/null || echo "No system files to backup"
+		cp -r $(BACKSTAGE_CATALOG_DIR)/users/*.yaml $(BACKUP_CATALOG_DIR)/users/ 2>/dev/null || echo "No user files to backup"
+
+validate-catalogs:
+		@bash compare_catalogs.sh
+		@echo "Catalog validation completed successfully"
 
 build-drawio-converter-image:
 		docker build -t $(DRAWIO_CONVERTER_IMAGE) $(DRAWIO_CONVERTER_BUILD_DIR) || { echo "Failed to build Docker image"; exit 1; }

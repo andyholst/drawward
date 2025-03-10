@@ -39,7 +39,7 @@ We plan to integrate Structurizr to dynamically update C4 diagrams from code, ge
 
 3. **Generate Catalog Files**:
    - Run the enhanced Python script to convert XML into individual Backstage catalog files.
-   - Files are organized into `catalog/systems/`, `catalog/components/`, `catalog/resources/`, and `catalog/apis/`, with relationships like dependencies and APIs included.
+   - Files are organized into `catalog/systems/`, `catalog/components/`, `catalog/resources/`, and `catalog/apis/`, with relationships like dependencies and APIs included. The script now supports infrastructure technologies, boundary handling, and dynamic metadata generation.
 
 4. **Import into Backstage**:
    - Backstage automatically imports and validates catalog files from the repository.
@@ -54,16 +54,17 @@ We plan to integrate Structurizr to dynamically update C4 diagrams from code, ge
 
 ## Enhanced XML to Backstage Conversion
 
-The conversion script has been upgraded to align with Backstage best practices:
+The `convert_xml_to_backstage_files.py` script transforms C4 model diagrams from Draw.io into Backstage catalog files:
 
-- **Configurability**: Reads environment variables (`REPO_SLUG`, `TEAM_NAME`, `OWNER`, `LIFECYCLE`) for project-specific settings.
-- **Relationship Mapping**: Captures C4 relationships as `dependsOn`, `providesApis`, and `consumesApis` in the catalog files.
-- **API Entities**: Creates `API` entities for API interactions (e.g., JSON/HTTP), enhancing service visibility.
-- **Modular Files**: Generates one YAML file per entity (e.g., `components/authorization-service.yaml`) for scalability.
-- **System Hierarchy**: Links entities to parent systems based on C4 boundaries.
-- **Best Practices**: Organizes files into `systems/`, `components/`, `resources/`, and `apis/`, with annotations (e.g., `github.com/project-slug`) and tags.
+- **Infrastructure Support**: Recognizes infrastructure technologies (e.g., PostgreSQL, Redis, Apache Kafka, HashiCorp Vault) as `Resource` kinds, assigning types like `database`, `message-queue`, or `key-vault` (e.g., `postgres-database.yaml`, `redis-database.yaml`).
+- **Boundary Handling**: Processes `SystemScopeBoundary` and `ContainerScopeBoundary` from XML files to link entities to their respective systems (e.g., `authorization-server`) and containers (e.g., `authorization-service`), improving hierarchy accuracy.
+- **API System Attribution**: Ties APIs to their provider’s system (e.g., `api-validate-token.yaml` under `authorization-server`), ensuring precise catalog organization via `providesApis` and `consumesApis`.
+- **Dynamic Metadata**: Generates tags and `technology` fields dynamically based on entity type and description (e.g., `tags: [spring-service]`, `technology: Spring Boot Service` in `authorization-service.yaml`), enhancing discoverability.
+- **Improved Naming**: Creates unique, descriptive names for databases and infrastructure (e.g., `postgres-database`, `clients-to-be-registered`) from C4 model data.
+- **Modular Structure**: Produces one YAML file per entity, organized into `catalog/systems/`, `catalog/components/`, `catalog/resources/`, and `catalog/apis/` (e.g., `api-authorize-the-user-to-get-a-valid-access-refresh-token.yaml`).
+- **Configurability**: Reads environment variables (`REPO_SLUG`, `TEAM_NAME`, `OWNER`, `LIFECYCLE`) to tailor annotations and ownership (e.g., `github.com/project-slug: myorg/myrepo`, `owner: dev-team`).
 
-These improvements make the catalog files more actionable in Backstage, supporting dependency visualization, API management, and service discovery.
+These enhancements ensure catalog files are detailed, actionable, and aligned with Backstage best practices, supporting dependency visualization, API management, and service discovery.
 
 ## Repository Structure
 

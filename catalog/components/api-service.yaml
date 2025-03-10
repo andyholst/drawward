@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Provide OpenAPI endpoints
+  name: api-service
+  tags:
+  - spring-service
+spec:
+  lifecycle: experimental
+  owner: dev-team
+  providesApis:
+  - api:api-routes-authenticated-requests-to-protected-api-service-[json-http]
+  system: authorization-server
+  technology: Spring Boot Service
+  type: service
