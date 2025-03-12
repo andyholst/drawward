@@ -3,18 +3,23 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: myorg/myrepo
-  description: Authorizez the person/system based on Oauth2 protocol
+  description: Authorizez the person/system based on Oauth2 protocol based on /authorize,
+    /token, /revoke, /register-client, /introspect
   name: authorization-service
   tags:
-  - spring boot
+  - spring-service
 spec:
   dependsOn:
-  - resource:users-clients
+  - resource:postgres-database
+  - resource:redis-database
+  - resource:secret-manager
   lifecycle: experimental
   owner: dev-team
   providesApis:
-  - api:api-person-authorize-themselves-through-authorize-endpoint
-  - api:api-machine-authorize-themselves-through-the-token-endpoint
+  - api:api-exchanges-authorization-code-for-access-refresh-token-and-to-exchange-refresh-token-for-new-access-token
+  - api:api-authorize-themselves-through-client-credentials-token-flow
+  - api:api-register-new-clients-over-the-register-client-endpoint
+  - api:api-authorize-the-user-to-get-a-valid-access-refresh-token
   system: authorization-server
-  technology: Spring Boot
+  technology: Spring Boot Service
   type: service

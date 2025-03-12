@@ -1,15 +1,14 @@
 apiVersion: backstage.io/v1alpha1
-kind: Resource
+kind: Api
 metadata:
   annotations:
     github.com/project-slug: myorg/myrepo
-  description: Contains users and clients to authenticate person and machines
-  name: users-clients
+  description: Makes API calls with validated token
+  name: api-makes-api-calls-with-validated-token
   tags:
-  - postgresql
+  - json/http
 spec:
   lifecycle: experimental
   owner: dev-team
   system: authorization-server
-  technology: PostgreSQL
-  type: database
+  type: openapi

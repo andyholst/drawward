@@ -3,8 +3,8 @@ kind: Api
 metadata:
   annotations:
     github.com/project-slug: myorg/myrepo
-  description: Machine authorize themselves through the token endpoint
-  name: api-machine-authorize-themselves-through-the-token-endpoint
+  description: Authorize the user to get a valid access/refresh token
+  name: api-authorize-the-user-to-get-a-valid-access-refresh-token
   tags:
   - json/http
 spec:

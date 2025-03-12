@@ -1,0 +1,20 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Public web client for external uses to get access to specific protected
+    backend systems
+  name: public-web-client
+  tags: []
+spec:
+  consumesApis:
+  - api:api-exchanges-authorization-code-for-access-refresh-token-and-to-exchange-refresh-token-for-new-access-token
+  dependsOn:
+  - component:authorization-service
+  lifecycle: experimental
+  owner: dev-team
+  providesApis:
+  - api:api-person-authorizes-themselves-with-authorization-code-flow
+  system: authorization-server
+  type: service

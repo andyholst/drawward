@@ -3,8 +3,8 @@ kind: Api
 metadata:
   annotations:
     github.com/project-slug: myorg/myrepo
-  description: Person authorize themselves through authorize endpoint
-  name: api-person-authorize-themselves-through-authorize-endpoint
+  description: Register new clients over the /register-client endpoint
+  name: api-register-new-clients-over-the-register-client-endpoint
   tags:
   - json/http
 spec:

@@ -4,11 +4,14 @@ metadata:
   annotations:
     github.com/project-slug: myorg/myrepo
   description: Description of person.
-  name: person-name
+  name: person
   tags: []
 spec:
   consumesApis:
-  - api:api-person-authorize-themselves-through-authorize-endpoint
+  - api:api-person-authorizes-themselves-with-authorization-code-flow
+  - api:api-authorize-themselves-with-privileged-token-access-through-the-platform-web-client
+  dependsOn:
+  - component:public-web-client
   lifecycle: experimental
   owner: dev-team
   type: user

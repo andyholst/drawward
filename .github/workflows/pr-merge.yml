@@ -17,14 +17,7 @@ jobs:
 
       - name: Backup catalog files from current branch
         run: |
-          # Create backup directories for each entity type
-          mkdir -p backup_catalog/apis backup_catalog/components backup_catalog/resources backup_catalog/systems backup_catalog/users
-          # Copy all YAML files from each entity directory to backup
-          cp -r catalog/apis/*.yaml backup_catalog/apis/ 2>/dev/null || echo "No API files to backup"
-          cp -r catalog/components/*.yaml backup_catalog/components/ 2>/dev/null || echo "No component files to backup"
-          cp -r catalog/resources/*.yaml backup_catalog/resources/ 2>/dev/null || echo "No resource files to backup"
-          cp -r catalog/systems/*.yaml backup_catalog/systems/ 2>/dev/null || echo "No system files to backup"
-          cp -r catalog/users/*.yaml backup_catalog/users/ 2>/dev/null || echo "No user files to backup"
+          make backup-catalogs
 
       - name: Clean Workspace
         run: |
@@ -40,65 +33,8 @@ jobs:
 
       - name: Compare generated Backstage files with committed Backstage files
         run: |
-          for dir in apis components resources systems users; do
-            if [ -d "backup_catalog/$dir" ]; then
-              for file in backup_catalog/$dir/*.yaml; do
-                base_name=$(basename "$file")
-                generated_file="catalog/$dir/$base_name"
-                if [ -f "$generated_file" ]; then
-                  diff "$file" "$generated_file"
-                  if [ $? -ne 0 ]; then
-                    echo "Error: Generated $generated_file does not match the one in main"
-                    exit 1
-                  fi
-                else
-                  echo "Generated file $generated_file not found"
-                  exit 1
-                fi
-              done
-            else
-              echo "No backup files for $dir, skipping comparison"
-            fi
-          done
+          make validate-catalogs
 
       - name: Lint Backstage YAML Files
         run: |
           make lint-backstage-files
-
-      - name: Validate XML and YAML Files
-        run: |
-          SVG_DIR="docs/design/drawio"
-          XML_DIR="docs/design/xml"
-          CATALOG_DIR="catalog"
-
-          if [ -z "$(ls -A "$SVG_DIR"/*.svg 2>/dev/null)" ]; then
-            echo "No SVG files found in $SVG_DIR"
-            exit 1
-          fi
-          # Validate each SVG has a corresponding XML
-          for svg_file in "$SVG_DIR"/*.svg; do
-            base_name=$(basename "$svg_file" .svg)
-            xml_file="$XML_DIR/$base_name.xml"
-            if [ ! -f "$xml_file" ]; then
-              echo "Error: XML file $xml_file does not exist for $svg_file"
-              exit 1
-            fi
-            if [ ! -s "$xml_file" ]; then
-              echo "Error: XML file $xml_file is empty"
-              exit 1
-            fi
-          done
-          # Validate catalog files exist in each entity directory
-          for dir in "$CATALOG_DIR"/apis "$CATALOG_DIR"/components "$CATALOG_DIR"/resources "$CATALOG_DIR"/systems "$CATALOG_DIR"/users; do
-            if [ -z "$(ls -A "$dir"/*.yaml 2>/dev/null)" ]; then
-              echo "Error: No YAML files found in $dir"
-              exit 1
-            fi
-            for yaml_file in "$dir"/*.yaml; do
-              if [ ! -s "$yaml_file" ]; then
-                echo "Error: YAML file $yaml_file is empty"
-                exit 1
-              fi
-            done
-          done
-          echo "Validation successful: All XML and YAML files are present and non-empty"
