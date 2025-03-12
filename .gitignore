@@ -1,3 +1,4 @@
 .obsidian
 *.bkp
 backup_catalog
+**/docs/design/xml

@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: ''
+  name: authorization-server
+  tags: []
+spec:
+  domain: security
+  owner: group:dev-team

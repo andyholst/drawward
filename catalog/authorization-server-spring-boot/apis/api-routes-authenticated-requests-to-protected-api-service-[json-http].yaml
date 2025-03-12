@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Api
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Routes authenticated requests to protected API Service [JSON/HTTP]
+  name: api-routes-authenticated-requests-to-protected-api-service-[json-http]
+  tags:
+  - json/http
+spec:
+  lifecycle: experimental
+  owner: group:dev-team
+  system: authorization-server
+  type: openapi

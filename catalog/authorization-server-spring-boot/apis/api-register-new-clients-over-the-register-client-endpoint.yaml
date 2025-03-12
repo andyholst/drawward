@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Api
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Register new clients over the /register-client endpoint
+  name: api-register-new-clients-over-the-register-client-endpoint
+  tags:
+  - json/http
+spec:
+  lifecycle: experimental
+  owner: group:dev-team
+  system: authorization-server
+  type: openapi

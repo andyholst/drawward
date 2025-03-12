@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Domain
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Domain for security
+  name: security
+  tags: []
+spec:
+  owner: group:dev-team
