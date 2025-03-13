@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Team dev-team
+  name: dev-team
+  tags: []
+spec:
+  type: team

@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: User uses the platform web browser to maintain the cluster of the services
+  name: platform-web-browser
+  tags:
+  - react
+spec:
+  consumesApis:
+  - api:api-authorize-themselves-with-privileged-token-access-through-the-platform-web-client
+  lifecycle: experimental
+  owner: group:dev-team
+  providesApis:
+  - api:api-makes-api-calls-with-valid-token
+  system: authorization-server
+  technology: react
+  type: website

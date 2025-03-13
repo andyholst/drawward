@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Processes stored kafka client messages and register each of them accordingly
+  name: client-registrator
+  tags:
+  - spring-service
+spec:
+  consumesApis:
+  - api:api-register-new-clients-over-the-register-client-endpoint
+  lifecycle: experimental
+  owner: group:dev-team
+  system: authorization-server
+  technology: Spring Boot Service
+  type: service

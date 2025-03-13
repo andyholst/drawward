@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: A public web browser to access non sensitive backend services
+  name: public-web-browser
+  tags:
+  - angular
+spec:
+  consumesApis:
+  - api:api-exchanges-authorization-code-for-access-refresh-token-and-to-exchange-refresh-token-for-new-access-token
+  lifecycle: experimental
+  owner: group:dev-team
+  providesApis:
+  - api:api-person-authorizes-themselves-with-authorization-code-flow
+  system: authorization-server
+  technology: angular
+  type: website

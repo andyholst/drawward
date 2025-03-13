@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Contains Access/Refresh tokens for limited time
+  name: redis-database
+  tags:
+  - redis
+spec:
+  lifecycle: experimental
+  owner: group:dev-team
+  system: authorization-server
+  technology: redis
+  type: database

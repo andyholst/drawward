@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Api
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Authorize themselves with privileged token access through the Platform
+    Web Client
+  name: api-authorize-themselves-with-privileged-token-access-through-the-platform-web-client
+  tags:
+  - json/http
+spec:
+  lifecycle: experimental
+  owner: group:dev-team
+  system: authorization-server
+  type: openapi

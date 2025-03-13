@@ -12,26 +12,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Backup catalog files from current branch
+      - name: For all comitted Backstage services, convert svg to xml, and convert from xml to Backstage files and compare them with the committed ones
         run: |
-          make backup-catalogs
-
-      - name: Clean Workspace
-        run: |
-          make clean
-
-      - name: Convert SVG to XML
-        run: |
-          make convert-drawio-svg-to-xml
-
-      - name: Convert XML to Backstage YAML
-        run: |
-          make convert-xml-to-backstage-files
-
-      - name: Compare generated Backstage files with committed Backstage files
-        run: |
-          make validate-catalogs
-
-      - name: Lint Backstage YAML Files
-        run: |
-          make lint-backstage-files
+          make all

@@ -1,0 +1,21 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Routes and secures all HTTP traffic for authorization, token validation,
+    and service communication clustered for scalability and reliability
+  name: api-gateway
+  tags:
+  - kong
+spec:
+  consumesApis:
+  - api:api-validate-token
+  - api:api-routes-authenticated-requests-to-protected-api-service-[json-http]
+  lifecycle: experimental
+  owner: group:dev-team
+  providesApis:
+  - api:api-makes-api-calls-with-validated-token
+  system: authorization-server
+  technology: kong
+  type: service

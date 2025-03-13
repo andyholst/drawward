@@ -39,6 +39,12 @@ INFRA_TECHNOLOGIES = [
     'zeromq', 'nats', 'pubsub', 'servicebus'
 ]
 
+# Supported languages/frameworks
+LANGUAGE_TECHNOLOGIES = [
+    'python', 'nodejs', 'node.js', 'go', 'golang', 'angular', 'react',
+    'spring', 'spring boot', 'spring-boot', 'django', 'flask', 'express', 'gin', 'echo'
+]
+
 def parse_xml_to_dict(xml_file):
     """Parse an XML file into a Python dictionary."""
     with open(xml_file, 'r') as f:
@@ -64,20 +70,42 @@ def refine_tags_and_technology(entity, container_name=None):
     tags = [tech] if tech else []
     refined_tech = tech
 
-    if entity['type'] == 'library':
-        if any(t in tech for t in ['spring', 'spring boot', 'spring-boot']):
+    # Language-specific refinements
+    if entity['type'] == 'service':
+        if 'python' in tech or 'flask' in tech or 'django' in tech:
+            tags = ['python-service']
+            refined_tech = 'Python Service' if 'python' in tech else tech.capitalize()
+        elif 'nodejs' in tech or 'node.js' in tech or 'express' in tech:
+            tags = ['nodejs-service']
+            refined_tech = 'Node.js Service'
+        elif 'go' in tech or 'golang' in tech or 'gin' in tech or 'echo' in tech:
+            tags = ['go-service']
+            refined_tech = 'Go Service'
+        elif 'spring' in tech or 'spring boot' in tech or 'spring-boot' in tech:
+            tags = ['spring-service']
+            refined_tech = 'Spring Boot Service'
+        elif 'angular' in tech or 'react' in tech:
+            tags = [f"{tech}-frontend"]
+            refined_tech = f"{tech.capitalize()} Frontend"
+    elif entity['type'] == 'library':
+        if 'spring' in tech or 'spring boot' in tech or 'spring-boot' in tech:
             if 'database' in description or 'postgres' in description:
                 tags = ['spring-data', 'database-library']
                 refined_tech = 'Spring Data JPA'
             else:
                 tags = ['spring-library']
                 refined_tech = 'Spring Framework'
+        elif 'python' in tech:
+            tags = ['python-library']
+            refined_tech = 'Python Library'
+        elif 'nodejs' in tech or 'node.js' in tech:
+            tags = ['nodejs-library']
+            refined_tech = 'Node.js Library'
+        elif 'go' in tech or 'golang' in tech:
+            tags = ['go-library']
+            refined_tech = 'Go Library'
         if container_name:
             tags.append(f"{container_name}-library")
-    elif entity['type'] == 'service':
-        if any(t in tech for t in ['spring', 'spring boot', 'spring-boot']):
-            tags = ['spring-service']
-            refined_tech = 'Spring Boot Service'
 
     entity['tags'] = tags
     if refined_tech:
@@ -96,25 +124,33 @@ def process_xml_file(xml_file):
     container_boundary = next(
         (obj for obj in root.get('object', []) if obj.get('@c4Type') == 'ContainerScopeBoundary'), None
     )
-    parent_system = sanitize_name(system_boundary['@c4Name']) if system_boundary else None
+    parent_system = None
+    domain_name = None
+    if system_boundary:
+        c4_name = system_boundary['@c4Name']
+        if ', domain: ' in c4_name:
+            system_name_part, domain_part = c4_name.split(', domain: ', 1)
+            parent_system = sanitize_name(system_name_part.strip())
+            domain_name = sanitize_name(domain_part.strip())
+        else:
+            parent_system = sanitize_name(c4_name)
     parent_container = sanitize_name(container_boundary['@c4Name']) if container_boundary else None
-    logger.info(f"Processing {xml_file}: System = {parent_system or 'None'}, Container = {parent_container or 'None'}")
+    logger.info(f"Processing {xml_file}: System = {parent_system or 'None'}, Domain = {domain_name or 'None'}, Container = {parent_container or 'None'}")
 
     entities = {}
 
     if system_boundary:
-        system_name = sanitize_name(system_boundary['@c4Name'])
         system_entity = {
             'kind': 'system',
-            'name': system_name,
+            'name': parent_system,
             'description': system_boundary.get('@c4Description', ''),
-            'system': None,
+            'domain': domain_name,
             'dependsOn': [],
             'providesApis': [],
             'consumesApis': []
         }
         entities['system_boundary'] = system_entity
-        logger.info(f"System Entity: {system_name} (system)")
+        logger.info(f"System Entity: {parent_system} (system), Domain: {domain_name}")
 
     for obj in root.get('object', []):
         if '@c4Type' not in obj:
@@ -148,6 +184,9 @@ def process_xml_file(xml_file):
                     'message-queue' if 'kafka' in technology or 'mq' in technology or 'pubsub' in technology else
                     'key-vault' if 'vault' in technology else 'infrastructure'
                 )
+            elif technology in ['angular', 'react']:
+                kind = 'component'
+                entity_type = 'website'
             else:
                 kind = 'component'
                 entity_type = 'service'
@@ -206,10 +245,12 @@ def process_xml_file(xml_file):
                         api_name = sanitize_name(f"api-{description}")
                         api_ref = generate_entity_ref('api', api_name)
                         api_type = API_TYPE_MAPPING.get(technology, 'openapi')
-                        if api_ref not in target['providesApis']:
-                            target['providesApis'].append(api_ref)
-                        if api_ref not in source['consumesApis']:
-                            source['consumesApis'].append(api_ref)
+                        if target['kind'] != 'user':
+                            if api_ref not in target['providesApis']:
+                                target['providesApis'].append(api_ref)
+                        if source['kind'] != 'user':
+                            if api_ref not in source['consumesApis']:
+                                source['consumesApis'].append(api_ref)
                         api_system = target['system']
                         api_entity = {
                             'kind': 'api',
@@ -217,8 +258,6 @@ def process_xml_file(xml_file):
                             'description': description,
                             'technology': technology,
                             'type': api_type,
-                            'lifecycle': LIFECYCLE,
-                            'owner': OWNER,
                             'system': api_system,
                             'dependsOn': [],
                             'providesApis': [],
@@ -228,10 +267,13 @@ def process_xml_file(xml_file):
                         api_counter += 1
                         logger.info(f"API: {api_name}, System = {api_system}, Source = {source['name']}, Target = {target['name']}")
                     else:
-                        dep = generate_entity_ref(target['kind'], target['name'])
-                        if dep not in source['dependsOn']:
-                            source['dependsOn'].append(dep)
-                        logger.info(f"Dependency: {source['name']} dependsOn {dep}")
+                        if source['kind'] != 'user' and target['kind'] != 'user':
+                            dep = generate_entity_ref(target['kind'], target['name'])
+                            if dep not in source['dependsOn']:
+                                source['dependsOn'].append(dep)
+                                logger.info(f"Dependency: {source['name']} dependsOn {dep}")
+                        else:
+                            logger.info(f"Skipping dependsOn for relationship involving User: {source['name']} -> {target['name']}")
 
     return entities
 
@@ -265,6 +307,29 @@ def generate_catalog_files():
                 existing['consumesApis'].extend(
                     [api for api in entity['consumesApis'] if api not in existing['consumesApis']]
                 )
+                if 'domain' in entity and 'domain' not in existing:
+                    existing['domain'] = entity['domain']
+
+    # Add Group entity
+    group_name = sanitize_name(TEAM_NAME)
+    all_entities[('group', group_name)] = {
+        'kind': 'group',
+        'name': group_name,
+        'description': f"Team {TEAM_NAME}",
+        'type': 'team'
+    }
+
+    # Collect and create Domain entities
+    domains = set()
+    for (kind, name), entity in all_entities.items():
+        if kind == 'system' and 'domain' in entity and entity['domain']:
+            domains.add(entity['domain'])
+    for domain in domains:
+        all_entities[('domain', domain)] = {
+            'kind': 'domain',
+            'name': domain,
+            'description': f"Domain for {domain}",
+        }
 
     for (kind, name), entity in all_entities.items():
         container_name = entity.get('container')
@@ -283,27 +348,36 @@ def generate_catalog_files():
                 'annotations': {'github.com/project-slug': REPO_SLUG},
                 'tags': entity.get('tags', [])
             },
-            'spec': {
-                'lifecycle': LIFECYCLE,
-                'owner': OWNER
-            }
+            'spec': {}
         }
-        if 'type' in entity:
-            yaml_data['spec']['type'] = entity['type']
-        if entity['system'] and entity['kind'] in ['component', 'resource', 'api']:
-            yaml_data['spec']['system'] = entity['system']
-        if entity['dependsOn']:
-            yaml_data['spec']['dependsOn'] = entity['dependsOn']
-        if entity['providesApis']:
-            yaml_data['spec']['providesApis'] = entity['providesApis']
-        if entity['consumesApis']:
-            yaml_data['spec']['consumesApis'] = entity['consumesApis']
-        if entity.get('technology') and entity['kind'] != 'api':
-            yaml_data['spec']['technology'] = entity['technology']
+
+        if entity['kind'] == 'group':
+            if 'type' in entity:
+                yaml_data['spec']['type'] = entity['type']
+        elif entity['kind'] == 'domain':
+            yaml_data['spec']['owner'] = f"group:{group_name}"
+        elif entity['kind'] != 'user':
+            yaml_data['spec']['owner'] = f"group:{group_name}"
+            if entity['kind'] in ['component', 'api', 'resource']:
+                yaml_data['spec']['lifecycle'] = LIFECYCLE
+            if 'type' in entity:
+                yaml_data['spec']['type'] = entity['type']
+            if entity['kind'] == 'system' and 'domain' in entity and entity['domain']:
+                yaml_data['spec']['domain'] = entity['domain']
+            if entity['kind'] in ['component', 'resource', 'api'] and 'system' in entity:
+                yaml_data['spec']['system'] = entity['system']
+            if entity['dependsOn']:
+                yaml_data['spec']['dependsOn'] = entity['dependsOn']
+            if entity['providesApis']:
+                yaml_data['spec']['providesApis'] = entity['providesApis']
+            if entity['consumesApis']:
+                yaml_data['spec']['consumesApis'] = entity['consumesApis']
+            if entity.get('technology') and entity['kind'] != 'api':
+                yaml_data['spec']['technology'] = entity['technology']
 
         with open(output_file, 'w') as f:
             yaml.dump(yaml_data, f, default_flow_style=False)
-        logger.info(f"Generated: {output_file} with system = {entity.get('system', 'None')}")
+        logger.info(f"Generated: {output_file} with system = {entity.get('system', 'None')}, domain = {entity.get('domain', 'None')}")
 
 if __name__ == "__main__":
     generate_catalog_files()

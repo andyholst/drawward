@@ -1,0 +1,9 @@
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Description of person.
+  name: person
+  tags: []
+spec: {}

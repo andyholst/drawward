@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Internal Web Client for internal users to access more privilieged services.
+  name: platform-web-client
+  tags:
+  - spring-service
+spec:
+  consumesApis:
+  - api:api-makes-api-calls-with-validated-token
+  - api:api-authorize-the-user-to-get-a-valid-access-refresh-token
+  dependsOn:
+  - resource:clients-to-be-registered
+  lifecycle: experimental
+  owner: group:dev-team
+  providesApis:
+  - api:api-authorize-themselves-with-privileged-token-access-through-the-platform-web-client
+  system: authorization-server
+  technology: Spring Boot Service
+  type: service

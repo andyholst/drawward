@@ -1,0 +1,24 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: myorg/myrepo
+  description: Security Bean, to setup the oauth2 server and expose the oauth2 endpoints
+  name: spring-security-bean
+  tags:
+  - spring-library
+  - authorization-service-library
+spec:
+  dependsOn:
+  - resource:secret-manager
+  - component:postgres-repository
+  lifecycle: experimental
+  owner: group:dev-team
+  providesApis:
+  - api:api-exchanges-authorization-code-for-access-refresh-token-and-to-exchange-refresh-token-for-new-access-token
+  - api:api-authorize-themselves-through-client-credentials-token-flow
+  - api:api-register-new-clients-over-the-register-client-endpoint
+  - api:api-authorize-the-user-to-get-a-valid-access-refresh-token
+  system: authorization-server
+  technology: Spring Framework
+  type: library
