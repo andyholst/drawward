@@ -1,20 +1,24 @@
 #!/bin/bash
 
-SVG_DIR="/input"
-XML_DIR="/output"
-
-# Check if input and output directories are mounted
-if [ ! -d "$SVG_DIR" ] || [ ! -d "$XML_DIR" ]; then
-    echo "Error: Please mount input and output directories."
+# Use the XML_DIR set by entrypoint.sh
+if [ -z "$XML_DIR" ]; then
+    echo "Error: XML_DIR is not set."
     exit 1
 fi
 
+# Check if input directory is mounted
+if [ ! -d "$SVG_DIR" ]; then
+    echo "Error: Input directory $SVG_DIR is not mounted."
+    exit 1
+fi
+
+# Find all SVG files recursively in /input
+SVG_FILES=$(find "$SVG_DIR" -type f -name "*.svg")
+
 # Handle cases with no SVG files
-shopt -s nullglob
-SVG_FILES=("$SVG_DIR"/*.svg)
-if [ ${#SVG_FILES[@]} -eq 0 ]; then
-    echo "No SVG files found in $SVG_DIR"
-    exit 0
+if [ -z "$SVG_FILES" ]; then
+    echo "Error: No SVG files found in $SVG_DIR or its subdirectories"
+    exit 1
 fi
 
 # Bypass DBus to avoid connection issues
@@ -25,10 +29,10 @@ Xvfb :99 -screen 0 1024x768x16 &
 export DISPLAY=:99
 
 # Process each SVG file
-for SVG_FILE in "${SVG_FILES[@]}"; do
+for SVG_FILE in $SVG_FILES; do
     XML_FILE="$XML_DIR/$(basename "$SVG_FILE" .svg).xml"
     
-    # Verify input file exists (redundant due to glob, but good practice)
+    # Verify input file exists
     if [ ! -f "$SVG_FILE" ]; then
         echo "Error: Input file $SVG_FILE does not exist"
         exit 1

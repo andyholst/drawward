@@ -14,4 +14,8 @@ jobs:
 
       - name: For all comitted Backstage services, convert svg to xml, and convert from xml to Backstage files and compare them with the committed ones
         run: |
-          make all
+          make process-all-common-steps
+
+      - name: Execute all steps and make sure drawward-cli acts the same as the seperate converter container operations
+        run: |
+          make process-all-steps-with-drawward-cli
