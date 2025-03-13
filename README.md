@@ -38,7 +38,7 @@ We plan to integrate Structurizr to dynamically update C4 diagrams from code, ge
    - Use a Docker-based tool to extract XML, saved to `docs/design/xml/<service-name>/`.
 
 3. **Generate Catalog Files**:
-   - Run the enhanced Python script to convert XML into individual Backstage catalog files, organized into `catalog/<service-name>/systems/`, `catalog/<service-name>/components/`, `catalog/<service-name>/resources/`, and `catalog/<service-name>/apis/`, with relationships like dependencies and APIs included.
+   - Use the enhanced Python script (`convert_xml_to_backstage_files.py`) or the new `drawward-cli` tool to convert XML into individual Backstage catalog files, organized into `catalog/<service-name>/systems/`, `catalog/<service-name>/components/`, `catalog/<service-name>/resources/`, and `catalog/<service-name>/apis/`, with relationships like dependencies and APIs included.
 
 4. **Import into Backstage**:
    - Configure Backstage to import catalog files from service-specific subdirectories (e.g., `catalog/<service-name>/*.yaml`).
@@ -53,7 +53,7 @@ We plan to integrate Structurizr to dynamically update C4 diagrams from code, ge
 
 ## Enhanced XML to Backstage Conversion
 
-The `convert_xml_to_backstage_files.py` script transforms C4 model diagrams from Draw.io into Backstage catalog files with these features:
+The `convert_xml_to_backstage_files.py` script and the new `drawward-cli` tool transform C4 model diagrams from Draw.io into Backstage catalog files with these features:
 
 - **Multi-Service Support**: Generates catalog files into service-specific subdirectories (e.g., `catalog/<service-name>/`), enabling scalable management of multiple services.
 - **Technology Recognition**: Identifies frontend technologies like React and Angular as `website` types with tags (e.g., `react-frontend`), alongside Python, Node.js, Go, and Spring services/libraries.
@@ -79,17 +79,29 @@ These enhancements ensure catalog files are detailed, actionable, and aligned wi
 - `docs/design/xml/<service-name>/`: Temporary XML files for each service.
 - `.github/workflows/`: Automation workflows.
 
-
 ## Usage
+
+### The `drawward-cli` Tool
+
+The `drawward-cli` is a new command-line tool introduced to streamline the process of generating Backstage catalog files from SVG diagrams. It simplifies the workflow by providing a single interface to execute key steps, such as generating catalog files. The tool leverages Docker and integrates seamlessly with the existing Makefile targets.
 
 ### Makefile Commands
 
-- `make build-drawio-image`: Build Docker image for SVG-to-XML conversion.
-- `make convert-drawio-svg-to-xml`: Convert SVG to XML for all services.
-- `make convert-xml-to-backstage-files`: Generate catalog files from XML for all services.
-- `make lint-backstage-files`: Lint generated catalog files.
-- `make clean`: Remove generated files.
-- `make all`: Run the full workflow. Commands process all services in `docs/design/drawio/`. Service-specific processing is a future enhancement.
+The Makefile has been updated with new commands to support the `drawward-cli` tool and enhance the workflow. Below is a comprehensive list of key commands and their purposes:
+
+- **`make build-drawio-image`**: Builds the Docker image used for SVG-to-XML conversion.
+- **`make convert-drawio-svg-to-xml`**: Converts SVG files to XML for all services in `docs/design/drawio/`.
+- **`make convert-xml-to-backstage-files`**: Generates Backstage catalog files from XML for all services using the Python script.
+- **`make lint-backstage-files`**: Lints generated catalog files to ensure they meet Backstage standards.
+- **`make clean`**: Removes generated files (e.g., XML and catalog files) to reset the workspace.
+- **`make all`**: Runs the full workflow (SVG-to-XML conversion and catalog file generation) for all services in `docs/design/drawio/`. Service-specific processing is a future enhancement.
+- **`make generate-backstage-files-%`**: Generates catalog files for a specific service (e.g., `make generate-backstage-files-my-service` processes `docs/design/drawio/my-service/`).
+- **`make run-drawward-cli`**: Executes the `drawward-cli` tool to generate catalog files for all services in one command, simplifying the process.
+- **`make backup-all-catalogs`**: Creates backups of all existing catalog files before regeneration, ensuring data safety.
+- **`make validate-all-catalogs`**: Validates all generated catalog files against Backstage schema requirements.
+- **`make process-all-steps-with-drawward-cli`**: Runs the complete pipeline using `drawward-cli`, including backup, catalog file generation, and validation in a single command.
+
+These commands provide flexibility, allowing users to process all services or target specific ones, while the `drawward-cli`-specific commands offer a streamlined, end-to-end experience.
 
 ### Backstage Integration Details
 
@@ -101,4 +113,5 @@ These enhancements ensure catalog files are detailed, actionable, and aligned wi
 
 - **Dynamic Diagrams**: Use Structurizr for code-to-diagram updates.
 - **Service Automation**: Automate detection and processing of new services.
-- **Tool Integrations**: Expand integrations with additional tools.
+- **Tool Integrations**: Expand integrations with additional tools, including potential enhancements to `drawward-cli`.
+- **Service-Specific Processing**: Enhance Makefile targets to process individual services more seamlessly.

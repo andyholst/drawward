@@ -5,14 +5,30 @@ import xmltodict
 import yaml
 import logging
 import re
+import sys
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Directory and environment variables
-INPUT_DIR = "/input"
-OUTPUT_DIR = "/output"
+# Directory and environment variables with validation
+INPUT_DIR = os.getenv('INPUT_DIR')
+OUTPUT_DIR = os.getenv('OUTPUT_DIR')
+
+# Check if INPUT_DIR is set
+if not INPUT_DIR:
+    logger.error("Error: INPUT_DIR environment variable is not set.")
+    sys.exit(1)
+
+# Check if OUTPUT_DIR is set
+if not OUTPUT_DIR:
+    logger.error("Error: OUTPUT_DIR environment variable is not set.")
+    sys.exit(1)
+
+# Check if input directory exists
+if not os.path.isdir(INPUT_DIR):
+    logger.error(f"Error: Input directory {INPUT_DIR} does not exist or is not mounted.")
+    sys.exit(1)
 
 REPO_SLUG = os.getenv('REPO_SLUG', 'org/repo')
 TEAM_NAME = os.getenv('TEAM_NAME', 'team-a')
@@ -281,8 +297,8 @@ def generate_catalog_files():
     """Generate Backstage catalog YAML files from all XML files."""
     xml_files = list(Path(INPUT_DIR).glob('*.xml'))
     if not xml_files:
-        logger.error(f"No XML files found in {INPUT_DIR}")
-        exit(0)
+        logger.error(f"Error: No XML files found in {INPUT_DIR}")
+        sys.exit(1)
 
     all_entities = {}
     for xml_file in xml_files:
