@@ -81,13 +81,62 @@ These enhancements ensure catalog files are detailed, actionable, and aligned wi
 
 ## Usage
 
-### The `drawward-cli` Tool
+The `drawward-cli` tool is a command-line interface designed to streamline the generation of Backstage catalog files from Draw.io SVG diagrams in the DrawWard project. It simplifies the process by providing a single interface to convert SVG files (containing C4 model diagrams) into YAML catalog files, leveraging Docker for consistency and integrating seamlessly with Makefile commands.
 
-The `drawward-cli` is a new command-line tool introduced to streamline the process of generating Backstage catalog files from SVG diagrams. It simplifies the workflow by providing a single interface to execute key steps, such as generating catalog files. The tool leverages Docker and integrates seamlessly with the existing Makefile targets.
+### Purpose and Functionality
+
+The tool automates the conversion of architecture diagrams into Backstage-compatible catalog files, enabling users to maintain a consistent view of their software landscape. It processes multiple services by scanning subdirectories in a specified input directory, generating catalog files for each service, and outputting them to a designated directory structure. This makes it ideal for managing complex, multi-service architectures.
+
+### Mandatory Requirements
+
+To use `drawward-cli` effectively, ensure the following prerequisites are met:
+1. **Docker Installed and Running**: Docker is essential for building and running the `drawward-cli` image.
+2. **SVG Diagrams Prepared**: C4 model diagrams must be exported as SVG files (with embedded XML) and organized by service in subdirectories (e.g., `docs/design/drawio/<service-name>/` by default).
+3. **Docker Image Built**: Build the `drawward-cli` image locally using the provided Makefile command (e.g., `make build-drawio-image`). This is a one-time step unless the Dockerfile changes.
+
+### Running the Tool
+
+The tool can be executed via Makefile commands, which handle input and output directory mappings automatically. Key commands include:
+- **`make run-drawward-cli`**: Processes all services in the input directory and generates catalog files in the output directory.
+
+These commands use default directories unless overridden:
+- **Default Input Directory (`INPUT_DIR`)**: `docs/design/drawio`
+- **Default Output Directory (`OUTPUT_DIR`)**: `catalog`
+
+### Customizing Input and Output Directories
+
+Users can override the default directories by setting `INPUT_DIR` and `OUTPUT_DIR` when running Makefile commands. This allows for flexible workflows:
+- **Custom Input and Output**:
+  - Command: `make run-drawward-cli INPUT_DIR=/custom/input OUTPUT_DIR=/custom/output`
+  - Effect: Processes services from `/custom/input/` and outputs to `/custom/output/<service-name>/`.
+- **Custom Input Only**:
+  - Command: `make run-drawward-cli INPUT_DIR=/custom/input`
+  - Effect: Uses `/custom/input/` for input and the default `catalog/` for output.
+- **Dynamic Service Detection**: The tool automatically detects services from subdirectories in `INPUT_DIR`, so no manual service listing is required.
+
+### Customizing Environment Variables
+
+Optional environment variables can be set to customize metadata in the generated catalog files:
+- `REPO_SLUG`: Repository identifier (default: `myorg/myrepo`).
+- `TEAM_NAME`: Team name for ownership (default: `dev-team`).
+- `OWNER`: Entity owner (default: matches `TEAM_NAME`).
+- `LIFECYCLE`: Lifecycle stage (default: `experimental`).
+- **Usage**: Set before the command, e.g., `REPO_SLUG=myorg/myproject TEAM_NAME=ops-team make run-drawward-cli`.
+
+### Advanced Usage: Direct Docker Run
+
+For advanced users, the Docker container can be run directly, manually specifying input and output directories:
+- Command: `docker run --rm -v /path/to/input:/input -v /path/to/output:/output drawward-cli convert-svg-to-yaml`
+- This processes SVG files from `/path/to/input` and outputs YAML to `/path/to/output`.
+
+### Default Behavior
+
+If no custom directories are specified, `drawward-cli` uses:
+- **Input**: `docs/design/drawio/<service-name>/`
+- **Output**: `catalog/<service-name>/`
+This ensures the tool works out of the box with the default repository structure while allowing customization for different setups.
 
 ### Makefile Commands
-
-The Makefile has been updated with new commands to support the `drawward-cli` tool and enhance the workflow. Below is a comprehensive list of key commands and their purposes:
 
 - **`make build-drawio-image`**: Builds the Docker image used for SVG-to-XML conversion.
 - **`make convert-drawio-svg-to-xml`**: Converts SVG files to XML for all services in `docs/design/drawio/`.

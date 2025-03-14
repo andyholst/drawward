@@ -19,7 +19,12 @@ TEAM_NAME ?= dev-team
 OWNER ?= $(TEAM_NAME)
 LIFECYCLE ?= experimental
 
-SERVICES := $(notdir $(wildcard $(DRAWIO_BASE_DIR)/*))
+# Overridable input and output directories
+INPUT_DIR ?= $(DRAWIO_BASE_DIR)
+OUTPUT_DIR ?= $(CATALOG_DIR)
+
+# Dynamically scan services from INPUT_DIR
+SERVICES := $(notdir $(wildcard $(INPUT_DIR)/*))
 
 .PHONY: process-all-common-steps build-drawio-converter-image build-backstage-converter-image build-backstage-lint-image build-drawward-cli-image run-drawward-cli clean process-all-steps-with-drawward-cli backup-all-catalogs validate-all-catalogs $(SERVICES)
 
@@ -53,7 +58,7 @@ convert-drawio-svg-to-xml-%: build-drawio-converter-image
 		@mkdir -p $(DRAWIO_XML_DIR)/$*
 		@echo "Converting SVG to XML for service $*"
 		@docker run --rm \
-				-v "$(PWD)/$(DRAWIO_BASE_DIR)/$*:/input" \
+				-v "$(PWD)/$(INPUT_DIR)/$*:/input" \
 				-v "$(PWD)/$(DRAWIO_XML_DIR)/$*:/output" \
 				-e SVG_DIR="/input" \
 				-e XML_DIR="/output" \
@@ -62,11 +67,11 @@ convert-drawio-svg-to-xml-%: build-drawio-converter-image
 
 # Convert XML to Backstage files for a specific service
 convert-xml-to-backstage-files-%: build-backstage-converter-image
-		@mkdir -p catalog/$*/systems catalog/$*/components catalog/$*/resources catalog/$*/users catalog/$*/apis
+		@mkdir -p $(OUTPUT_DIR)/$*/systems $(OUTPUT_DIR)/$*/components $(OUTPUT_DIR)/$*/resources $(OUTPUT_DIR)/$*/users $(OUTPUT_DIR)/$*/apis
 		@echo "Converting XML to Backstage files for service $*"
 		@docker run --rm \
 				-v "$(PWD)/$(DRAWIO_XML_DIR)/$*:/input" \
-				-v "$(PWD)/catalog/$*:/output" \
+				-v "$(PWD)/$(OUTPUT_DIR)/$*:/output" \
 				-e INPUT_DIR="/input" \
 				-e OUTPUT_DIR="/output" \
 				-e REPO_SLUG=$(REPO_SLUG) \
@@ -74,59 +79,59 @@ convert-xml-to-backstage-files-%: build-backstage-converter-image
 				-e OWNER=$(OWNER) \
 				-e LIFECYCLE=$(LIFECYCLE) \
 				$(BACKSTAGE_CONVERTER_IMAGE) || { echo "Failed to convert XML files to Backstage YAML for $*"; exit 1; }
-		@echo "XML files for $* converted to Backstage YAML in catalog/$*"
+		@echo "XML files for $* converted to Backstage YAML in $(OUTPUT_DIR)/$*"
 
 # Lint Backstage files
 lint-backstage-files-%: build-backstage-lint-image
 		@echo "Linting Backstage files for service $*"
 		@docker run --rm \
-				-v "$(PWD)/catalog/$*:/app" \
+				-v "$(PWD)/$(OUTPUT_DIR)/$*:/app" \
 				$(BACKSTAGE_LINT_IMAGE) || { echo "Backstage YAML linting failed for $*"; exit 1; }
 		@echo "Backstage YAML files for $* linted successfully"
 
 # Backup catalogs
 backup-catalogs-%:
 		@mkdir -p $(BACKUP_CATALOG_DIR)/$*/apis $(BACKUP_CATALOG_DIR)/$*/components $(BACKUP_CATALOG_DIR)/$*/resources $(BACKUP_CATALOG_DIR)/$*/systems $(BACKUP_CATALOG_DIR)/$*/users
-		@cp -r catalog/$*/apis/*.yaml $(BACKUP_CATALOG_DIR)/$*/apis/ 2>/dev/null || echo "No API files to backup for $*"
-		@cp -r catalog/$*/components/*.yaml $(BACKUP_CATALOG_DIR)/$*/components/ 2>/dev/null || echo "No component files to backup for $*"
-		@cp -r catalog/$*/resources/*.yaml $(BACKUP_CATALOG_DIR)/$*/resources/ 2>/dev/null || echo "No resource files to backup for $*"
-		@cp -r catalog/$*/systems/*.yaml $(BACKUP_CATALOG_DIR)/$*/systems/ 2>/dev/null || echo "No system files to backup for $*"
-		@cp -r catalog/$*/users/*.yaml $(BACKUP_CATALOG_DIR)/$*/users/ 2>/dev/null || echo "No user files to backup for $*"
+		@cp -r $(OUTPUT_DIR)/$*/apis/*.yaml $(BACKUP_CATALOG_DIR)/$*/apis/ 2>/dev/null || echo "No API files to backup for $*"
+		@cp -r $(OUTPUT_DIR)/$*/components/*.yaml $(BACKUP_CATALOG_DIR)/$*/components/ 2>/dev/null || echo "No component files to backup for $*"
+		@cp -r $(OUTPUT_DIR)/$*/resources/*.yaml $(BACKUP_CATALOG_DIR)/$*/resources/ 2>/dev/null || echo "No resource files to backup for $*"
+		@cp -r $(OUTPUT_DIR)/$*/systems/*.yaml $(BACKUP_CATALOG_DIR)/$*/systems/ 2>/dev/null || echo "No system files to backup for $*"
+		@cp -r $(OUTPUT_DIR)/$*/users/*.yaml $(BACKUP_CATALOG_DIR)/$*/users/ 2>/dev/null || echo "No user files to backup for $*"
 
 # Validate catalogs
 validate-catalogs-%:
-		@BACKUP_CATALOG_DIR="$(BACKUP_CATALOG_DIR)/$*" BACKSTAGE_CATALOG_DIR="catalog/$*" bash compare_catalogs.sh || { echo "Catalog validation failed for $*"; exit 1; }
+		@BACKUP_CATALOG_DIR="$(BACKUP_CATALOG_DIR)/$*" BACKSTAGE_CATALOG_DIR="$(OUTPUT_DIR)/$*" bash compare_catalogs.sh || { echo "Catalog validation failed for $*"; exit 1; }
 		@echo "Catalog validation completed successfully for $*"
 
 # Unified SVG to Backstage YAML generation using drawward-cli for a specific service
 generate-backstage-files-%: build-drawward-cli-image
-		@mkdir -p catalog/$*/systems catalog/$*/components catalog/$*/resources catalog/$*/users catalog/$*/apis
+		@mkdir -p $(OUTPUT_DIR)/$*/systems $(OUTPUT_DIR)/$*/components $(OUTPUT_DIR)/$*/resources $(OUTPUT_DIR)/$*/users $(OUTPUT_DIR)/$*/apis
 		@echo "Generating Backstage YAML files from SVG for service $*"
 		@docker run --rm \
-				-v "$(PWD)/$(DRAWIO_BASE_DIR)/$*:/input" \
-				-v "$(PWD)/catalog/$*:/output" \
+				-v "$(PWD)/$(INPUT_DIR)/$*:/input" \
+				-v "$(PWD)/$(OUTPUT_DIR)/$*:/output" \
 				-e REPO_SLUG=$(REPO_SLUG) \
 				-e TEAM_NAME=$(TEAM_NAME) \
 				-e OWNER=$(OWNER) \
 				-e LIFECYCLE=$(LIFECYCLE) \
 				$(DRAWWARD_CLI_IMAGE) convert-svg-to-yaml || { echo "Failed to generate Backstage YAML for $*"; exit 1; }
-		@echo "Backstage YAML files for $* generated in catalog/$*"
+		@echo "Backstage YAML files for $* generated in $(OUTPUT_DIR)/$*"
 
 # Unified SVG to Backstage YAML generation for all services using drawward-cli
 run-drawward-cli: build-drawward-cli-image
-		@echo "Running drawward-cli for all services"
+		@echo "Running drawward-cli for all services in $(INPUT_DIR)"
 		@for service in $(SERVICES); do \
 				echo "Processing service: $$service"; \
-				mkdir -p $(CATALOG_DIR)/$$service/systems $(CATALOG_DIR)/$$service/components $(CATALOG_DIR)/$$service/resources $(CATALOG_DIR)/$$service/users $(CATALOG_DIR)/$$service/apis; \
+				mkdir -p $(OUTPUT_DIR)/$$service/systems $(OUTPUT_DIR)/$$service/components $(OUTPUT_DIR)/$$service/resources $(OUTPUT_DIR)/$$service/users $(OUTPUT_DIR)/$$service/apis; \
 				docker run --rm \
-						-v "$(PWD)/$(DRAWIO_BASE_DIR)/$$service:/input" \
-						-v "$(PWD)/$(CATALOG_DIR)/$$service:/output" \
+						-v "$(PWD)/$(INPUT_DIR)/$$service:/input" \
+						-v "$(PWD)/$(OUTPUT_DIR)/$$service:/output" \
 						-e REPO_SLUG=$(REPO_SLUG) \
 						-e TEAM_NAME=$(TEAM_NAME) \
 						-e OWNER=$(OWNER) \
 						-e LIFECYCLE=$(LIFECYCLE) \
 						$(DRAWWARD_CLI_IMAGE) convert-svg-to-yaml || { echo "Failed to generate Backstage YAML for $$service"; exit 1; }; \
-				echo "Backstage YAML files for $$service generated in $(CATALOG_DIR)/$$service"; \
+		echo "Backstage YAML files for $$service generated in $(OUTPUT_DIR)/$$service"; \
 		done
 		@echo "drawward-cli execution completed for all services"
 
@@ -147,8 +152,8 @@ process-all-steps-with-drawward-cli: backup-all-catalogs run-drawward-cli valida
 
 # Clean up generated files
 clean:
-		@rm -rf $(DRAWIO_XML_DIR) $(CATALOG_DIR) $(BACKUP_CATALOG_DIR)
-		@echo "Cleaned up $(DRAWIO_XML_DIR) and catalog"
+		@rm -rf $(DRAWIO_XML_DIR) $(OUTPUT_DIR) $(BACKUP_CATALOG_DIR)
+		@echo "Cleaned up $(DRAWIO_XML_DIR) and $(OUTPUT_DIR)"
 
 # Catch-all target to pass arguments to run-drawward-cli
 %:
