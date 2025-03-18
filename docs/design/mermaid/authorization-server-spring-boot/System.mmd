@@ -1,0 +1,4 @@
+C4Context
+  Person(person, "Person", "Description of person.")
+  System(authorizationServer, "Authorization Server, domain: security", "Authorizez the person/system based on Oauth2 protocol based on /authorize, /token, /revoke, /register-client, /introspect")
+  Rel(person, authorizationServer, "Uses")

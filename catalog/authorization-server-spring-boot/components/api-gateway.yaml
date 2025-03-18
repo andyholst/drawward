@@ -17,5 +17,5 @@ spec:
   providesApis:
   - api:api-makes-api-calls-with-validated-token
   system: authorization-server
-  technology: kong
+  technology: Kong
   type: service

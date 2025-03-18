@@ -15,5 +15,5 @@ spec:
   providesApis:
   - api:api-makes-api-calls-with-valid-token
   system: authorization-server
-  technology: react
+  technology: React
   type: website

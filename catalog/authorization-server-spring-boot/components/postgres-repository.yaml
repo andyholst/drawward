@@ -6,6 +6,7 @@ metadata:
   description: Repository for Postgres call
   name: postgres-repository
   tags:
+  - spring-library
   - spring-data
   - database-library
   - authorization-service-library
