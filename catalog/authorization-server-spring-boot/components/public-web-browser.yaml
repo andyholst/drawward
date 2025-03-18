@@ -15,5 +15,5 @@ spec:
   providesApis:
   - api:api-person-authorizes-themselves-with-authorization-code-flow
   system: authorization-server
-  technology: angular
+  technology: Angular
   type: website

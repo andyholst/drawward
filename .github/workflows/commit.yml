@@ -19,3 +19,7 @@ jobs:
       - name: Execute all steps and make sure drawward-cli acts the same as the seperate converter container operations
         run: |
           make process-all-steps-with-drawward-cli
+
+      - name: Execute all process-all-common-steps and generate Mermaid to Backstage files and validate them with the committed ones
+        run: |
+          make process-and-compare-mermaid-all

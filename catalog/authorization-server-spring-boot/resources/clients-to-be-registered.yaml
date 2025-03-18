@@ -13,5 +13,5 @@ spec:
   lifecycle: experimental
   owner: group:dev-team
   system: authorization-server
-  technology: apache kafka
+  technology: Apache Kafka
   type: message-queue

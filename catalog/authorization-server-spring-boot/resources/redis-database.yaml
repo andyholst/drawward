@@ -11,5 +11,5 @@ spec:
   lifecycle: experimental
   owner: group:dev-team
   system: authorization-server
-  technology: redis
+  technology: Redis
   type: database

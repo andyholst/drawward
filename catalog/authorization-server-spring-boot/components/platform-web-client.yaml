@@ -3,7 +3,7 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: myorg/myrepo
-  description: Internal Web Client for internal users to access more privilieged services.
+  description: Internal Web Client for internal users to access more privileged services.
   name: platform-web-client
   tags:
   - spring-service

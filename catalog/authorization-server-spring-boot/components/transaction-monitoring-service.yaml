@@ -4,7 +4,7 @@ metadata:
   annotations:
     github.com/project-slug: myorg/myrepo
   description: Internal service talking to the API service through the API Gateway
-    and needs a valid token to talk with other services throuyh HTTP calls.
+    and needs a valid token to talk with other services through HTTP calls.
   name: transaction-monitoring-service
   tags:
   - spring-service
