@@ -1,0 +1,126 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: generic-entity-template
+  title: Create New Entity
+  description: Generates a new repository for a service or resource based on the selected technology
+spec:
+  parameters:
+    - title: Entity Details
+      required: [entityType, technology, name]
+      properties:
+        entityType:
+          type: string
+          enum: ["service", "database", "message-queue", "key-vault"]
+          description: Type of entity to create (e.g., service, database)
+        technology:
+          type: string
+          enum: ["Spring Boot", "React", "Angular", "Kong", "PostgreSQL", "Redis", "Apache Kafka", "HashiCorp Vault"]
+          description: Technology for the entity (e.g., Spring Boot for service, PostgreSQL for database)
+        name:
+          type: string
+          description: Name of the entity (e.g., my-service, my-database)
+        description:
+          type: string
+          description: Description of the entity
+        system:
+          type: string
+          default: authorization-server
+          description: System the entity belongs to
+        owner:
+          type: string
+          default: group:dev-team
+          description: Owner of the entity (e.g., group:dev-team)
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tags for the entity (e.g., "spring-service", "json/http")
+        lifecycle:
+          type: string
+          default: experimental
+          description: Lifecycle stage of the entity (e.g., experimental, production)
+    - title: Repository Details
+      required: [repoUrl]
+      properties:
+        repoUrl:
+          type: string
+          description: URL of the repository to publish the entity to (e.g., github.com?owner=myorg&repo={{ name }})
+        gitopsRepoUrl:
+          type: string
+          description: URL of the GitOps repository (required if entityType is 'service' to enable GitOps actions)
+  steps:
+    - id: fetch-skeleton
+      name: Fetch Skeleton
+      action: fetch:template
+      input:
+        url: ./skeletons/{{ parameters.entityType }}/{{ parameters.technology | lower | replace(' ', '-') }}
+        values:
+          name: {{ parameters.name }}
+          description: {{ parameters.description | default("A new entity") }}
+          system: {{ parameters.system }}
+          owner: {{ parameters.owner }}
+          repoUrl: {{ parameters.repoUrl }}
+          kind: {{ 'Component' if parameters.entityType == 'service' else 'Resource' }}
+          specType: {{ parameters.entityType }}
+          tags: {{ parameters.tags | default([]) }}
+          lifecycle: {{ parameters.lifecycle }}
+          technology: {{ parameters.technology }}
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        repoUrl: {{ parameters.repoUrl }}
+        defaultBranch: main
+    - id: register
+      name: Register in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: {{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+    - id: clone-gitops
+      if: {{ parameters.entityType === 'service' }}
+      name: Clone GitOps Repository
+      action: git:clone
+      input:
+        url: {{ parameters.gitopsRepoUrl }}
+        branch: main
+        outputDirectory: ./gitops-repo
+    - id: generate-gitops
+      if: {{ parameters.entityType === 'service' }}
+      name: Generate GitOps Configs
+      action: fetch:template
+      input:
+        url: ./skeletons/gitops
+        targetPath: ./gitops-repo
+        values:
+          serviceName: {{ parameters.name }}
+          repoUrl: {{ steps.publish.output.remoteUrl }}
+    - id: add-gitops
+      if: {{ parameters.entityType === 'service' }}
+      name: Stage GitOps Changes
+      action: git:add
+      input:
+        path: ./gitops-repo
+        files: ["."]
+    - id: commit-gitops
+      if: {{ parameters.entityType === 'service' }}
+      name: Commit GitOps Changes
+      action: git:commit
+      input:
+        path: ./gitops-repo
+        message: "Add deployment for {{ parameters.name }}"
+    - id: push-gitops
+      if: {{ parameters.entityType === 'service' }}
+      name: Push to GitOps Repo
+      action: git:push
+      input:
+        path: ./gitops-repo
+        remote: origin
+        branch: main
+  output:
+    links:
+      - title: Repository
+        url: {{ steps.publish.output.remoteUrl }}
+      - title: Catalog Entity
+        entityRef: {{ steps.register.output.entityRef }}
